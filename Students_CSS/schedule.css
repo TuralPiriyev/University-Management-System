@@ -1,0 +1,92 @@
+  .schedule-container {
+        width: 90%;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    .schedule-title {
+        text-align: center;
+        color: #1e293b;
+        margin-bottom: 25px;
+        font-size: 1.8em;
+        font-weight: 600;
+    }
+
+    .schedule-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .schedule-table th {
+        background: #7dd3fc;
+        color: #1e3a8a;
+        padding: 15px 10px;
+        font-weight: 600;
+        text-align: center;
+        font-size: 0.95em;
+        border-bottom: 2px solid #38bdf8;
+    }
+
+    .schedule-table td {
+        padding: 20px 10px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        min-height: 70px;
+        transition: all 0.2s ease;
+    }
+
+    .schedule-table td:first-child {
+        background: #7dd3fc;
+        color: #1e3a8a;
+        font-weight: 600;
+        font-size: 0.9em;
+        white-space: nowrap;
+    }
+
+    .schedule-table tbody tr:hover td:not(:first-child) {
+        background: #f1f5f9;
+    }
+
+    .schedule-table td:not(:first-child) {
+        cursor: pointer;
+    }
+
+    .schedule-table td:not(:first-child):hover {
+        background: #e0f2fe;
+        border-color: #7dd3fc;
+    }
+
+    @media (max-width: 1024px) {
+        .schedule-title {
+            font-size: 1.5em;
+        }
+        
+        .schedule-table th,
+        .schedule-table td {
+            padding: 12px 8px;
+            font-size: 0.85em;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .schedule-container {
+            padding: 15px;
+        }
+
+        .schedule-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 10px 5px;
+            font-size: 0.75em;
+        }
+    }
