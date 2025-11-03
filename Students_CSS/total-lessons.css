@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+.dashboard-selection-pages{width: 77vw;  margin: auto;}
+.lessons{display: flex; flex-direction: row; flex-wrap: wrap;}
+.less{height: 30vh; width: 25%; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+     text-align: center; display: flex; flex-direction:column; background-color: white;}
+.less div{margin: 20px;  }
+span, h1{font: 20px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+h1{font-size: 40px; font-weight: bold;}
+button{border: 1px solid gray; padding: 5px; border-radius: 10px; background-color: white;
+     font: 20px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+     button:hover{background-color: rgb(71, 126, 207); color: white; }

@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+body{margin: 0; padding: 0; background-color:#f4f4f5; }
+.container{display:flex; flex-direction: row;}
+.left-dashboard{
+  display: flex;
+flex-direction: column;
+width: 270px;      
+height: 100vh;      
+position: fixed;
+left: 0;
+top: 0;
+background-color: #ffffff;
+
+padding: 20px 12px;box-sizing: border-box;
+}
+.cont-btns{margin: auto; height: 70%;  width: 80%; display: flex;
+     flex-direction: column; justify-content:center; }
+a{ text-decoration: none; margin: auto;}
+img{height: 150px; width: 150px;}
+i{font-size: 20px;}
+.title-dashboard{background-color: rgb(71, 126, 207); color: white;}
+.title-dashboard, .dashboard-btn{width: 80%; border-radius: 10px; border: 0; height: 15%;
+    text-align: center;  font: 20px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); margin: 10px; padding: 10px;}
+.dashboard-btn:hover{background-color: rgb(71, 126, 207); color: #ffffff;}
+.dashboard-btn::selection{background-color: rgb(22, 59, 139);}
+.window {
+  margin-left: 270px;   
+  width: calc(100% - 270px);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;        
+  box-sizing: border-box;
+  height: 100vh;
+}
+.window-dash{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  position: relative; /* not absolute */
+  margin-bottom: 18px; /* spacing before KPI row */
+}
+.wind-title, .wind-other{width: 50%; font: 20px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+.wind-other{display: flex; flex-direction: row;  justify-content: center; align-items: center;}
+.notifi, .profile{padding: 10px;}
+.profile img{height: 40px; width: 40px;}
+.wind-other input{ width: 40%; border: 0; border-radius: 5px; margin: 20px; padding: 10px; }
+.notifi i{font-size: 25px;}
+.total-results{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;      /* responsive: cards wrap on smaller screens */
+  margin-top: 6px;
+}
+.total-result-div{
+  flex: 1 1 220px; /* grow, shrink, base 220px */
+  background-color: #ffffff;
+  border-radius: 15px;
+  margin: 8px 0;    /* vertical spacing */
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+.total-result-div span{font: 15px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;  }
+.total-result-div p{font: 40px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+
+
