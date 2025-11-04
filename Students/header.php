@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Students</title>
-    <link rel = "stylesheet" href = "Students_CSS/main.css" />
+    <link rel = "stylesheet" href = "../Students_CSS/main.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel = "stylesheet" href = "Students_CSS/total-lessons.css"/>
-    <link rel = "stylesheet" href = "Students_CSS/schedule.css"/>
-    <link rel = "stylesheet" href = "Students_CSS/teachers.css"/>
-    <link rel = "stylesheet" href = "Students_CSS/messages.css"/>
-    <link rel = "stylesheet" href = "Students_CSS/profile.css"/>
+    <link rel = "stylesheet" href = "../Students_CSS/total-lessons.css"/>
+    <link rel = "stylesheet" href = "../Students_CSS/schedule.css"/>
+    <link rel = "stylesheet" href = "../Students_CSS/teachers.css"/>
+    <link rel = "stylesheet" href = "../Students_CSS/messages.css"/>
+    <link rel = "stylesheet" href = "../Students_CSS/profile.css"/>
 </head>
 <body>
       <div class="container">
           <div class = "left-dashboard">
-             <a href = "#"><img src="Images/Azerbaijan_University_logo.png" alt=""></a>
+             <a href = "#"><img src="../Images/Azerbaijan_University_logo.png" alt=""></a>
              <div class = "cont-btns">
              <div class = "title-dashboard"><i class = "fa-solid fa-chart-pie"></i> Dashboard</div>
              <div class = "dashboard-btn">
@@ -48,7 +48,7 @@
                 <div class = "wind-other">
                     <input type="text" placeholder = "Search courese, teachers">
                     <div class = "notifi"><i class="fa-regular fa-bell text-xl text-[#0F1724]" aria-hidden="true"></i></div>
-                    <div class = "profile"><img src="Images/Azerbaijan_University_logo.png" alt=""></div>
+                    <div class = "profile"><img src="../Images/Azerbaijan_University_logo.png" alt=""></div>
                 </div>
             </div>
             <div class = "total-results">

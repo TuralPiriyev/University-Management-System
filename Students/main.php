@@ -3,12 +3,12 @@
             <div class = "dashboard-selection-pages">
                 <?php
                    $map = [
-                    'total-lessons' => 'Students/total-lessons.php',
-                    'schedule' => 'Students/schedule.php',
-                    'teachers' => 'Students/teachers.php',
-                    'messages' => 'Students/messages.php',
-                    'profile' => 'Students/profile.php',
-                    'settings'=> 'Students/settings.php'
+                    'total-lessons' => 'total-lessons.php',
+                    'schedule' => 'schedule.php',
+                    'teachers' => 'teachers.php',
+                    'messages' => 'messages.php',
+                    'profile' => 'profile.php',
+                    'settings'=> 'settings.php'
                    ];
                    $page = $_GET['page'] ?? 'total-lessons';
                    
