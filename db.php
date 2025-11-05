@@ -2,7 +2,7 @@
   $dbhost = 'localhost';
   $dbuser = 'root';
   $dbpass = '';
-  $dbname = 'university_management_system';
+  $dbname = 'uni_management';
 
   $conn = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
 if(!$conn) {echo "ugursuz!";}

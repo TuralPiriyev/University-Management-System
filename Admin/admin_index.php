@@ -1,1 +1,6 @@
-<h1>Adminler</h1>
+<?php
+  require_once "../db.php";
+  include "header.php";
+  include "main.php";
+  include "footer.php";
+?>
