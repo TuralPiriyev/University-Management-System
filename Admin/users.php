@@ -1,5 +1,7 @@
 <?php
   require_once "../db.php";
+
+  session_start();
   if(isset($_SESSION['message']))
   {
     echo "<script> alert('".$_SESSION['message']."'); </script>";
@@ -8,7 +10,7 @@
   if($_SERVER['REQUEST_METHOD'] === 'POST')
   {
    
-   //adding user
+       //adding user
        $act = $_POST['action'] ?? '';
        
         function add_user( $act_val, $table_name){
@@ -27,18 +29,42 @@
          if($result)
          {
              $_SESSION['message'] = "Ugurla elave edildi!";
-             header("Location: admin_index.php?tab=users");
+             header("Location: admin_index.php?tab=users&user_type=students");
+             exit;
          }
          else{ echo "Problem yarandi silinme zamani";}
-       
          }
     }
        
-    
-
      add_user("add_student", "students");
      add_user("add_teacher", "teachers");
      add_user("add_admin", "admins");
+    //Edit Users
+    function edit_user($act_val, $table_name)
+    {
+        global $conn, $act;
+          if($act === $act_val && isset($_POST['username']) && isset($_POST['email']) && isset($_POST['email']) && isset($_POST['edit_id']) )
+        {
+          $Username = mysqli_real_escape_string($conn,  $_POST['username']);
+          $Email= mysqli_real_escape_string($conn,  $_POST['email']);
+          $Password= mysqli_real_escape_string($conn,  $_POST['password']);
+           $edit_id  = intval($_POST['edit_id']);
+          $sql_edit = "Update `$table_name` set username = '$Username', email = '$Email', password = '$Password' where id = $edit_id;";
+
+           $result = mysqli_query($conn, $sql_edit);
+           if($result)
+         {
+             $_SESSION['message'] = "Ugurla update edildi!";
+             header("Location: admin_index.php?tab=users&user_type=students");
+             exit;
+         }
+         else{ echo "Problem yarandi silinme zamani";}
+        }
+    }
+     edit_user("edit_student", "students");
+     edit_user("edit_teacher", "teachers");
+     edit_user("edit_admin", "admins");
+
 
    //deleting student
    function delete_users($conn, $act,$act_val, $user_id, $table_name)
@@ -53,7 +79,8 @@
     if(isset($result))
     {
        $_SESSION['message'] = "Ugurla silindi!";
-       header("Location: admin_index.php?tab=users");
+       header("Location: admin_index.php?tab=users&user_type=students");
+       exit;
     }
     else{ echo "Problem yarandi silinme zamani";}
    }
@@ -69,11 +96,12 @@
                 <h2>Xoş gəlmisiniz!</h2>
                 <p>Sol menyudan bölmə seçin</p>
             </div>
-            <div class="user-type-buttons" id="userTypeButtons">
-                <button class="user-type-btn" onclick="showTable('students')">Tələbələr</button>
-                <button class="user-type-btn" onclick="showTable('teachers')">Müəllimlər</button>
-                <button class="user-type-btn" onclick="showTable('admins')">Admin</button>
-            </div>
+           <div class="user-type-buttons" id="userTypeButtons">
+             <button class="user-type-btn" data-type="students" onclick="showTable('students')">Tələbələr</button>
+             <button class="user-type-btn" data-type="teachers" onclick="showTable('teachers')">Müəllimlər</button>
+             <button class="user-type-btn" data-type="admins" onclick="showTable('admins')">Admin</button>
+           </div>
+
             <div class="table-container" id="studentsTable">
                 <h2>Tələbələr</h2>
                 <table>
@@ -104,10 +132,18 @@
                             <td><?php  echo htmlspecialchars($students['password']); ?></td>
                            
                              <td>
-                                <button class="action-btn edit-btn" onclick="openEditModal('teacher')">Edit</button>
+                          <button class="action-btn edit-btn"
+                            onclick='openEditModal(
+                              "student",
+                              <?php echo (int)$students['Id']; ?>,
+                              <?php echo json_encode($students['username']); ?>,
+                              <?php echo json_encode($students['email']); ?>,
+                              <?php echo json_encode($students['password']); ?>
+                            )'>Edit</button>
+           
                                 <form method = "POST" action = "admin_index.php">
                                 <input type="hidden" name = "action" value = "delete_student"/>
-                                <input type="hidden" name = "delete_student_id" value = "<?php echo htmlspecialchars($students['Id']);?>">
+                                <input type="hidden" name = "delete_student_id" value = "<?php echo htmlspecialchars($students['Id']); ?>">
                                  </br>
                                 <button class="action-btn delete-btn" type = "submit" name = "delete_student">Delete</button>
                                 </form>
@@ -150,7 +186,15 @@
                             <td><?php echo $teacher['email'];?></td>
                             <td><?php echo $teacher['password'];?></td>
                               <td>
-                                <button class="action-btn edit-btn" onclick="openEditModal('teacher')">Edit</button>
+                                <button class="action-btn edit-btn"
+                                   onclick='openEditModal(
+                                     "teacher",
+                                     <?php echo (int)$teacher['Id']; ?>,
+                                     <?php echo json_encode($teacher['username']); ?>,
+                                     <?php echo json_encode($teacher['email']); ?>,
+                                     <?php echo json_encode($teacher['password']); ?>
+                                   )'>Edit</button>
+
                                  <form method = "POST" action = "admin_index.php">
                                 <input type="hidden" name = "action" value = "delete_teacher"/>
                                 <input type="hidden" name = "delete_teacher_id" value = "<?php echo htmlspecialchars($teacher['Id']);?>">
@@ -196,7 +240,15 @@
                             <td><?php echo $admin['email'];?></td>
                             <td><?php echo $admin['password'];?></td>
                              <td>
-                               <button class="add-btn" onclick="openEditModal('admin')">Edit</button>
+                               <button class="action-btn edit-btn"
+                                  onclick='openEditModal(
+                                    "admin",
+                                    <?php echo (int)$admin['Id']; ?>,
+                                    <?php echo json_encode($admin['username']); ?>,
+                                    <?php echo json_encode($admin['email']); ?>,
+                                    <?php echo json_encode($admin['password']); ?>
+                                  )'>Edit</button>
+
                                  <form method = "POST" action = "admin_index.php">
                                 <input type="hidden" name = "action" value = "delete_admin"/>
                                 <input type="hidden" name = "delete_admin_id" value = "<?php echo htmlspecialchars($admin['Id']);?>">
