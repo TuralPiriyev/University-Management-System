@@ -29,7 +29,7 @@
        </div>
  <script>
 
-      function openAddModal(type) {
+ function openAddModal(type) {
             currentUserType = type;
             const modal = document.getElementById('modalOverlay');
             const modalTitle = document.getElementById('modalTitle');
@@ -85,12 +85,12 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-            document.getElementById('userForm').reset();
+ function closeModal() {
+ document.getElementById('modalOverlay').classList.remove('active');
+  document.getElementById('userForm').reset();
         }
-        function closeModalOnOverlay(event) {
-            if (event.target === document.getElementById('modalOverlay')) {
+ function closeModalOnOverlay(event) {
+  if (event.target === document.getElementById('modalOverlay')) {
                 closeModal();
             }
         }
@@ -122,6 +122,7 @@ function deactivateAllUserTypeButtons() {
 }
 
 // ---------- Core: showTable ----------
+// ---------- Core: showTable ----------
 function showTable(type) {
   type = normalizeType(type) || 'students'; // fallback students
 
@@ -151,6 +152,11 @@ function showTable(type) {
   // update URL (no reload) so redirect or refresh will keep the same tab
   try {
     const params = new URLSearchParams(window.location.search);
+
+    // <<< IMPORTANT: set 'page' to users so PHP will include users.php
+    // if you'd prefer to *remove* the page param instead, use params.delete('page');
+    params.set('page', 'users');
+
     params.set('tab', 'users');
     params.set('user_type', type);
     const newUrl = window.location.pathname + '?' + params.toString();
@@ -160,8 +166,10 @@ function showTable(type) {
   }
 }
 
+
 // ---------- showUsers: called when clicking sidebar "İstifadəçilər" ----------
-function showUsers(defaultType) {
+function showUsers(type) {
+   type = normalizeType(type) || 'students';
   // hide welcome and show the user-type controls
   const userTypeButtons = document.getElementById('userTypeButtons');
   if (userTypeButtons) userTypeButtons.classList.add('active');
@@ -195,8 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
     deactivateAllUserTypeButtons();
   }
 });
-
-
     </script>
 </body>
 </html>
