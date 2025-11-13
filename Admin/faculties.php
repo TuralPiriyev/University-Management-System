@@ -106,6 +106,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             from {opacity: 0; transform: scale(0.9);}
             to {opacity: 1; transform: scale(1);}
         }
+        .content-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.section-title {
+    font-size: 28px;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+.top-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.add-button {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.add-button:hover {
+    background-color: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+}
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+    min-width: 250px;
+}
+.search-input {
+    width: 100%;
+    padding: 12px 45px 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: all 0.3s;
+    outline: none;
+}
+.search-input:focus {
+    border-color: #5b7ceb;
+    box-shadow: 0 0 0 3px rgba(91, 124, 235, 0.1);
+}
+.search-input::placeholder {
+    color: #999;
+}
+.search-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    pointer-events: none;
+}
+.search-icon svg {
+    width: 20px;
+    height: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+thead {
+    background-color: #5b7ceb;
+    color: white;
+}
+th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 16px;
+}
+td {
+    padding: 16px;
+    border-bottom: 1px solid #ecf0f1;
+}
+tbody tr {
+    transition: background-color 0.2s;
+}
+tbody tr:hover {
+    background-color: #f8f9fa;
+}
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+.edit-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+.edit-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+.delete-btn:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+@media (max-width: 768px) {
+    .top-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-container {
+        max-width: 100%;
+    }
+}
     </style>
 </head>
 <body>
@@ -119,6 +257,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="content-section">
         <h2 class="section-title">Fakültələr</h2>
         <button class="add-button" type="button" id="openModalBtn">+ Yeni Fakültə Əlavə Et</button>
+         <div class="search-container">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="fakulte adi, kodu..."
+            >
+            <span class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </span>
+        </div>
         <table>
             <thead>
             <tr>
@@ -236,7 +387,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </div>
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const fakultelerTable = document.getElementById('fakultelerTable');
 
+    let facultyData = [];
+
+    fetch('admin_jsons/faculties.json.php')
+    .then(res=> res.json())
+    .then(data=>{
+        facultyData = data;
+        renderTable(facultyData);
+    });
+
+    searchInput.addEventListener('input', function(){
+        const query = this.value.toLowerCase();
+
+        const filtered = facultyData.filter(item=>{
+            return(
+                item.fac_name.toLowerCase().includes(query) ||
+                item.fac_code.toLowerCase().includes(query) 
+            );
+        });
+        renderTable(filtered);
+    });
+
+    function renderTable(data){
+        fakultelerTable.innerHTML = '';
+        if(data.length === 0)
+        {
+            fakultelerTable.innerHTML = '<tr><td colspan = "7"> HEc bir fakulte tapilmadi</td></tr>';
+            return;
+        }
+
+        data.forEach(item=>{
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${item.fac_id}</td>
+            <td><a href = "#">${item.fac_name}</a></td>
+            <td>${item.fac_code}</td>
+            <td>-</td>
+            <td>-</td>
+            <td>${item.lang_code || '-'}</td>
+            <td>
+                <div class='action-buttons'>
+                    <button type='button' class='edit-btn'
+                        data-id='${item.fac_id}'
+                        data-name='${item.fac_name}'
+                        data-code='${item.fac_code}'
+                        data-lang='${item.lang_id}'>
+                        Edit
+                    </button>
+                    <form method='POST' style='display:inline;'>
+                        <input type='hidden' name='action' value='delete_major' />
+                        <input type='hidden' name='delete_id' value='${item.fac_id}' />
+                        <button class='delete-btn' type='submit'>Delete</button>
+                    </form>
+                </div>
+            </td>
+            `;
+            fakultelerTable.appendChild(row);
+            console.log(facultyData);
+        })
+    }
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('fakulteModal');
