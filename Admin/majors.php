@@ -559,17 +559,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // attach edit handlers
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id || "";
-            const name = this.dataset.name || "";
-            const code = this.dataset.code || "";
-            const lang = this.dataset.lang || "";
-            const fac = this.dataset.fac || "";
+  majorsTable.addEventListener('click', function(e) {
+    if(e.target.classList.contains('edit-btn')) {
+        const btn = e.target;
+        const id = btn.dataset.id || "";
+        const name = btn.dataset.name || "";
+        const code = btn.dataset.code || "";
+        const lang = btn.dataset.lang || "";
+        const fac = btn.dataset.fac || "";
 
-            openEditModal({ id, name, code, lang, fac });
-        });
-    });
+        openEditModal({ id, name, code, lang, fac });
+    }
+});
+
 
     openBtn && openBtn.addEventListener('click', openAddModal);
     closeBtn && closeBtn.addEventListener('click', closeModal);

@@ -491,51 +491,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
         openModal();
     }
+   fakultelerTable.addEventListener('click', function(e) {
+    if (e.target.classList.contains('edit-btn')) {
+        const btn = e.target;
+        const id = btn.getAttribute('data-id') || "";
+        const name = btn.getAttribute('data-name') || "";
+        const code = btn.getAttribute('data-code') || "";
+        const langId = btn.getAttribute('data-lang') || "";
 
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // data atributlarından al
-            const id = this.getAttribute('data-id') || "";
-            const name = this.getAttribute('data-name') || "";
-            const code = this.getAttribute('data-code') || "";
-            const langId = this.getAttribute('data-lang') || "";
+        modalTitle.textContent = "Fakültəni Yenilə";
 
-            modalTitle.textContent = "Fakültəni Yenilə";
+        const actionInput = fakulteForm.querySelector("input[name='action']");
+        if (actionInput) actionInput.value = "edit_faculty";
 
-            const actionInput = fakulteForm.querySelector("input[name='action']");
-            if (actionInput) actionInput.value = "edit_faculty";
+        const oldEditInput = fakulteForm.querySelector("input[name='edit_id']");
+        if (oldEditInput) oldEditInput.remove();
 
-            const oldEditInput = fakulteForm.querySelector("input[name='edit_id']");
-            if (oldEditInput) oldEditInput.remove();
+        const editInput = document.createElement("input");
+        editInput.type = "hidden";
+        editInput.name = "edit_id";
+        editInput.value = id;
+        if (actionInput) {
+            actionInput.insertAdjacentElement("afterend", editInput);
+        } else {
+            fakulteForm.prepend(editInput);
+        }
 
-            const editInput = document.createElement("input");
-            editInput.type = "hidden";
-            editInput.name = "edit_id";
-            editInput.id = "edit_id";
-            editInput.value = id;
-            if (actionInput) {
-                actionInput.insertAdjacentElement("afterend", editInput);
-            } else {
-                fakulteForm.prepend(editInput);
-            }
+        fakulteAdi.value = name;
+        fakulteKod.value = code;
 
-            fakulteAdi.value = name;
-            fakulteKod.value = code;
+        if (sektor) sektor.value = langId;
 
-            if (sektor) {
-                const opt = sektor.querySelector("option[value='" + langId + "']");
-                if (opt) {
-                    sektor.value = langId;
-                } else {
-                    sektor.selectedIndex = 0;
-                }
-            }
+        if (saveBtn) saveBtn.textContent = "Yenilə";
 
-            if (saveBtn) saveBtn.textContent = "Yenilə";
+        modal.classList.add('active');
+    }
+});
 
-            openModal();
-        });
-    });
 
     openBtn && openBtn.addEventListener('click', openAddModal);
     closeBtn && closeBtn.addEventListener('click', closeModal);
@@ -551,7 +543,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
-
 </body>
 </html>
