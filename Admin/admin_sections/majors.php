@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <title>Ixtisaslar</title>
-<link rel="stylesheet" href="../Admin_CSS/faculty.css" />
+ 
 <style>
 .modal { display:none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999;}
 .modal.active { display:flex; }
@@ -264,24 +264,27 @@ tbody tr:hover {
       </thead>
       <tbody id="majorsTable">
 <?php
-$sql = "SELECT 
-            majors.Id AS maj_id,
-            majors.name AS maj_name,
-            majors.code AS maj_code,
-            majors.faculty_id AS maj_faculty_id,
-            faculties.id AS fac_id,
-            faculties.faculty_name AS fac_name,
-            faculties.language_id AS fac_lang_id,
-            languages.id AS lang_id,
-            languages.name AS lang_name
-        FROM majors
-        LEFT JOIN faculties ON majors.faculty_id = faculties.id
-        LEFT JOIN languages ON faculties.language_id = languages.id
-        ORDER BY majors.Id DESC";
+$sql = "SELECT
+          m.Id AS maj_id,
+          m.name AS maj_name,
+          m.code AS maj_code,
+          f.Id AS fac_id,
+          f.faculty_name AS fac_name,
+          l.Id AS lang_id,
+          l.name AS lang_name,
+          COUNT(g.Id) AS group_count
+        FROM majors m
+        LEFT JOIN `groups` g ON g.majors_group_id = m.Id
+        LEFT JOIN faculties f ON m.faculty_id = f.Id
+        LEFT JOIN languages l ON f.language_id = l.Id
+        GROUP BY m.Id, m.name, m.code, f.Id, f.faculty_name, l.Id, l.name
+        ORDER BY m.Id DESC";
 
 $result = mysqli_query($conn, $sql);
-if ($result && mysqli_num_rows($result) > 0) {
-    while ($maj = mysqli_fetch_assoc($result)) {
+
+
+if ($result  && mysqli_num_rows($result) > 0 ) {
+    while ($maj = mysqli_fetch_assoc($result) ) {
         $majId = (int)$maj['maj_id'];
         $majName = htmlspecialchars($maj['maj_name'], ENT_QUOTES);
         $majCode = htmlspecialchars($maj['maj_code'], ENT_QUOTES);
@@ -289,6 +292,7 @@ if ($result && mysqli_num_rows($result) > 0) {
         $langName = htmlspecialchars($maj['lang_name'] ?? '-', ENT_QUOTES);
         $langId = htmlspecialchars($maj['lang_id'] ?? '', ENT_QUOTES);
         $facId = htmlspecialchars($maj['fac_id'] ?? '', ENT_QUOTES);
+        $count = (int)$maj['group_count'];
 
         echo "
         <tr>
@@ -296,7 +300,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             <td><a href='#'>{$majName}</a></td>
             <td>{$majCode}</td>
             <td>{$facName}</td>
-            <td>-</td>
+            <td>{$count}</td>
             <td>{$langName}</td>
             <td>
                 <div class='action-buttons'>
@@ -421,7 +425,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             <td><a href = "#">${item.maj_name}</a></td>
             <td>${item.maj_code}</td>
             <td>${item.fac_name || '-'}</td>
-            <td>-</td>
+            <td>${item.grCount  }</td>
             <td>${item.lang_name || '-'}</td>
             <td>
                 <div class='action-buttons'>

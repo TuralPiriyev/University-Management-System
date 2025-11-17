@@ -80,8 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Fakültələr</title>
-    <link rel="stylesheet" href="../Admin_CSS/faculty.css" />
-    <style>
+     <style>
          .modal {
             display: none;
             position: absolute;

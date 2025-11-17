@@ -1,5 +1,4 @@
-qruplarin yaradilmasi ve ixtisaslarla elaqelendirilmesi qalib
-ve sonra qayidib teleber hissesinde telebelerin qruplara elaqelendirilmesi,
+ ve sonra qayidib teleber hissesinde telebelerin qruplara elaqelendirilmesi,
 ve qruplardaki telebelerin qiymetleri ve qayiblarinin hamisini silmek, update etmek funksiyalari olmalidi admin-de
 muellimlerin qruplara elaqelendirilmesi
 muellimler hissesinde ise(teacher) onlarda olan qruplarda telebelere qiymet ve qayiblari yazila bilmesi
