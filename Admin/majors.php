@@ -450,8 +450,7 @@ if ($result && mysqli_num_rows($result) > 0) {
 </script>
 
 <script>
-// Lang -> Faculty asinxron yükləmə
-const langSelect = document.getElementById('langSelect');
+ const langSelect = document.getElementById('langSelect');
 const facultySelect = document.getElementById('facultySelect');
 
 langSelect && langSelect.addEventListener('change', function() {
@@ -513,11 +512,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const actionInput = fakulteForm.querySelector("input[name='action']");
         if (actionInput) actionInput.value = "edit_major";
 
-        // remove old edit_id if exists
         const oldEditInput = fakulteForm.querySelector("input[name='edit_id']");
         if (oldEditInput) oldEditInput.remove();
 
-        // create hidden edit_id
         const editInput = document.createElement("input");
         editInput.type = "hidden";
         editInput.name = "edit_id";
@@ -529,7 +526,6 @@ document.addEventListener('DOMContentLoaded', function () {
         majorName.value = data.name;
         majorCode.value = data.code;
 
-        // set lang and then load faculties, after load set faculty
         if (data.lang) {
             langSelect.value = data.lang;
             facultySelect.innerHTML = '<option>Yüklənir...</option>';
@@ -537,11 +533,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(res => res.text())
                 .then(html => {
                     facultySelect.innerHTML = html;
-                    // set faculty if provided and exists in options
                     if (data.fac) {
                         try {
                             facultySelect.value = data.fac;
-                            // fallback: if not present, keep first option
                         } catch (e) {}
                     }
                 })
@@ -549,7 +543,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     facultySelect.innerHTML = '<option value="">Xəta baş verdi</option>';
                 });
         } else {
-            // no lang info -> clear faculty
             langSelect.value = "";
             facultySelect.innerHTML = '<option value="">Seçin</option>';
         }

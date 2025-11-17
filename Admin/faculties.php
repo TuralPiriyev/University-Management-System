@@ -82,8 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Fakültələr</title>
     <link rel="stylesheet" href="../Admin_CSS/faculty.css" />
     <style>
-        /* Əgər modal görünmürsə, bu CSS əlavə kömək edir */
-        .modal {
+         .modal {
             display: none;
             position: absolute;
             inset: 0;

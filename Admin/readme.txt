@@ -1,4 +1,3 @@
-bura major-larin fakultelerle elaqelendirilmesi qalib, 
 qruplarin yaradilmasi ve ixtisaslarla elaqelendirilmesi qalib
 ve sonra qayidib teleber hissesinde telebelerin qruplara elaqelendirilmesi,
 ve qruplardaki telebelerin qiymetleri ve qayiblarinin hamisini silmek, update etmek funksiyalari olmalidi admin-de
