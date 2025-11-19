@@ -16,7 +16,7 @@
         function add_user( $act_val, $table_name){
 
             global $conn, $act;
-        if($act === $act_val && isset($_POST['username']) && isset($_POST['email']) && isset($_POST['email']) )
+        if($act === $act_val && isset($_POST['username']) && isset($_POST['email']) && isset($_POST['password']))
         {
           $Username= mysqli_real_escape_string($conn,  $_POST['username']);
           $Email= mysqli_real_escape_string($conn,  $_POST['email']);
@@ -25,7 +25,6 @@
           $sql_add = "Insert into $table_name(username, email, password) values ('$Username', '$Email', '$Password')";
 
           $result = mysqli_query($conn, $sql_add);
-
          if($result)
          {
              $_SESSION['message'] = "Ugurla elave edildi!";
@@ -155,7 +154,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <button class="add-btn" onclick="openEditModal('student')">+ Yeni Tələbə Əlavə Et</button>
+                <button class="add-btn" onclick="openAddModal('student')">+ Yeni Tələbə Əlavə Et</button>
             </div>
 
             <div class="table-container" id="teachersTable">
@@ -243,10 +242,10 @@
                                <button class="action-btn edit-btn"
                                   onclick='openEditModal(
                                     "admin",
-                                    <?php echo (int)$admin['Id']; ?>,
-                                    <?php echo json_encode($admin['username']); ?>,
-                                    <?php echo json_encode($admin['email']); ?>,
-                                    <?php echo json_encode($admin['password']); ?>
+                                    <?php echo (int)$admin["Id"]; ?>,
+                                    <?php echo json_encode($admin["username"]); ?>,
+                                    <?php echo json_encode($admin["email"]); ?>,
+                                    <?php echo json_encode($admin["password"]); ?>
                                   )'>Edit</button>
 
                                  <form method = "POST" action = "admin_index.php">

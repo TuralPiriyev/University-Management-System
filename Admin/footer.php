@@ -20,6 +20,38 @@
                     <label for="userPassword">Şifrə</label>
                     <input type="password" id="userPassword" name = "password" required placeholder="Şifrə daxil edin">
                 </div>
+                 <div class="form-group">
+            <label>Sektor (Dil)</label>
+            <select name="lang_id" id="langSelect">
+                <option value="">Seçin</option>
+                <?php
+                $r = mysqli_query($conn, "SELECT Id, name FROM languages ORDER BY name");
+                while ($lang = mysqli_fetch_assoc($r)) {
+                    echo "<option value='". (int)$lang['Id'] ."'>". htmlspecialchars($lang['name'], ENT_QUOTES) ."</option>";
+                }
+                ?>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Fakültə</label>
+            <select name="faculty_tmp" id="facultySelect">
+                <option value="">Seçin</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Ixtisas</label>
+            <select name="major_id" id="majorSelect">
+                <option value="">Seçin</option>
+            </select>
+        </div>
+        <div class="form-group">
+          <label>Qrup</label>
+          <select name="group_id" id="groupSelect">
+            <option value="">Secin</option>
+          </select>
+        </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn cancel-btn" onclick="closeModal()">Ləğv Et</button>
                     <button type="submit" id = "submitBtn" class="modal-btn submit-btn">Əlavə Et</button>
@@ -103,6 +135,45 @@ function normalizeType(t) {
   if (t === 'admin') return 'admins';
   if (t === 'students' || t === 'teachers' || t === 'admins') return t;
   return null;
+}
+const langSelect = document.getElementById('langSelect');
+const facultySelect = document.getElementById('facultySelect');
+const majorSelect = document.getElementById('majorSelect');
+const groupSelect = document.getElementById('groupSelect');
+if (langSelect) {
+    langSelect.addEventListener('change', function(){
+        const langId = this.value;
+        facultySelect.innerHTML = '<option>Yüklənir...</option>';
+        majorSelect.innerHTML = '<option value="">Seçin</option>';
+        if (!langId) { facultySelect.innerHTML = '<option value="">Seçin</option>'; return; }
+        fetch('get_faculties.php?lang_id=' + encodeURIComponent(langId))
+            .then(r => r.text())
+            .then(html => { facultySelect.innerHTML = html; })
+            .catch(e => { facultySelect.innerHTML = '<option value="">Xəta</option>'; });
+    });
+}
+
+if (facultySelect) {
+    facultySelect.addEventListener('change', function(){
+        const facultyId = this.value;
+        majorSelect.innerHTML = '<option>Yüklənir...</option>';
+        if (!facultyId) { majorSelect.innerHTML = '<option value="">Seçin</option>'; return; }
+        fetch('get_majors.php?faculty_id=' + encodeURIComponent(facultyId))
+            .then(r => r.text())
+            .then(html => { majorSelect.innerHTML = html; })
+            .catch(e => { majorSelect.innerHTML = '<option value="">Xəta</option>'; });
+    });
+}
+if(groupSelect){
+     majorSelect.addEventListener('change', function(){
+        const majorId = this.value;
+        groupSelect.innerHTML = '<option>Yüklənir...</option>';
+        if (majorId) { groupSelect.innerHTML = '<option value="">Seçin</option>'; return; }
+        fetch('get_majors.php?major_id=' + encodeURIComponent(majorId))
+            .then(r => r.text())
+            .then(html => { majorSelect.innerHTML = html; })
+            .catch(e => { majorSelect.innerHTML = '<option value="">Xəta</option>'; });
+    });
 }
 
 // ---------- Hide/show utilities ----------
