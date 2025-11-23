@@ -168,9 +168,10 @@ if ($res && mysqli_num_rows($res) > 0) {
         $langId = (int)($row['lang_id'] ?? 0);
 
         // data attributes use htmlspecialchars ENT_QUOTES for safety
+        $href = "admin_index.php?page=groups&sub=details&id=" . (int)$grId;
         echo "<tr>
                 <td>". (int)$grId ."</td>
-                <td><a href=\"#\">". htmlspecialchars($grName, ENT_QUOTES) ."</a></td>
+                <td><a href=\"" . $href . "\">" . htmlspecialchars($grName, ENT_QUOTES) . "</a></td>
                 <td>". htmlspecialchars($grCode, ENT_QUOTES) ."</td>
                 <td>". htmlspecialchars($majName, ENT_QUOTES) ."</td>
                 <td>". htmlspecialchars($facName, ENT_QUOTES) ."</td>
@@ -255,7 +256,16 @@ if ($res && mysqli_num_rows($res) > 0) {
     </form>
   </div>
 </div>
-
+<?php
+          $map = [
+            'groups_students' => 'Details/groups_students.php'
+          ];
+          $page = $_GET['page'] ?? 'groups_students';
+          if(isset($map[$page]) && file_exists($map[$page]))
+          {
+            include $map[$page];
+          }
+        ?>
 <script>
 // CLIENT SIDE
 const searchInput = document.getElementById('searchInput');
@@ -291,7 +301,7 @@ function renderTable(data) {
     data.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${item.gr_id}</td>
-                        <td><a href="#">${escapeHtml(item.gr_name || '-')}</a></td>
+                        <td><a href="admin_index.php?page=groups_students">${escapeHtml(item.gr_name || '-')}</a></td>
                         <td>${escapeHtml(item.gr_code || '-')}</td>
                         <td>${escapeHtml(item.maj_name || '-')}</td>
                         <td>${escapeHtml(item.fac_name || '-')}</td>
@@ -322,9 +332,9 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return
 function escapeJsAttr(s){ return String(s).replace(/(["'\\])/g,'\\$1'); }
 
 // Dynamic selects: language -> faculties -> majors
-const langSelect = document.getElementById('langSelect');
-const facultySelect = document.getElementById('facultySelect');
-const majorSelect = document.getElementById('majorSelect');
+ langSelect = document.getElementById('langSelect');
+ facultySelect = document.getElementById('facultySelect');
+ majorSelect = document.getElementById('majorSelect');
 
 if (langSelect) {
     langSelect.addEventListener('change', function(){

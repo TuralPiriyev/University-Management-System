@@ -4,7 +4,6 @@ session_start();
 
 // Sessiya mesajını göstər
 if (isset($_SESSION['message'])) {
-    // Xüsusi təhlükəsizlik üçün mesajı javascript escape-edə bilərik, amma sadə alert istifadə edilir
     echo "<script>alert('" . addslashes($_SESSION['message']) . "');</script>";
     unset($_SESSION['message']);
 }
@@ -80,8 +79,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
 <meta charset="utf-8">
-<title>Ixtisaslar</title>
- 
+
+<?php
+// PREVENT 404 for missing lessons.css: include link only if file exists in same dir,
+// otherwise include a minimal fallback style to keep layout sane.
+// Adjust path if your lessons.css is located elsewhere.
+$cssRelPath = 'lessons.css';
+$cssAbs = __DIR__ . '/' . $cssRelPath;
+if (file_exists($cssAbs)) {
+    echo '<link rel="stylesheet" href="' . htmlspecialchars($cssRelPath, ENT_QUOTES) . '"/>';
+} else {
+    // minimal fallback style to avoid broken layout & 404 in console
+    echo '<style>
+    /* fallback minimal styles (you can remove when lessons.css is present) */
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;margin:0;padding:18px}
+    .content-section{background:#fff;padding:24px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+    .add-button{background:#27ae60;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    .search-input{padding:10px;border-radius:6px;border:1px solid #ddd;width:320px}
+    .action-buttons button{margin-right:6px}
+    </style>';
+}
+?>
+
 <style>
 .modal { display:none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999;}
 .modal.active { display:flex; }
@@ -236,20 +257,17 @@ tbody tr:hover {
 <div class="main-content">
   <div class="content-section">
     <h2 class="section-title">Ixtisaslar</h2>
-    <button class="add-button" type="button" id="openModalBtn">+ Yeni Ixtisas Əlavə Et</button>
-       <div class="search-container">
+    <button class="add-button" type="button" id="openModalBtn">+ Yeni İxtisas Əlavə Et</button>
+       <div class="search-container" style="margin-top:12px;">
             <input 
                 type="text" 
                 class="search-input" 
                 id="searchInput" 
                 placeholder="Ixtisas adi, kodu, fakulte adi..."
-            >
-            <span class="search-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </span>
+            />
+            <span style="color:#666;font-size:13px;">Dərs əlavə etmək və siyahısını görmək üçün ixtisas adına toxunun</span>
         </div>
+
     <table>
       <thead>
         <tr>
@@ -282,7 +300,6 @@ $sql = "SELECT
 
 $result = mysqli_query($conn, $sql);
 
-
 if ($result  && mysqli_num_rows($result) > 0 ) {
     while ($maj = mysqli_fetch_assoc($result) ) {
         $majId = (int)$maj['maj_id'];
@@ -297,7 +314,7 @@ if ($result  && mysqli_num_rows($result) > 0 ) {
         echo "
         <tr>
             <td>{$majId}</td>
-            <td><a href='#'>{$majName}</a></td>
+            <td><a href=\"admin_index.php?page=majors&sub=majors_lessons&id={$majId}\">{$majName}</a></td>
             <td>{$majCode}</td>
             <td>{$facName}</td>
             <td>{$count}</td>
@@ -326,12 +343,10 @@ if ($result  && mysqli_num_rows($result) > 0 ) {
     echo "<tr><td colspan='7'>Heç bir ixtisas tapılmadı</td></tr>";
 }
 ?>
-
       </tbody>
     </table>
   </div>
 </div>
-
 
 <!-- Modal Form -->
 <div class="modal" id="fakulteModal">
@@ -352,14 +367,16 @@ if ($result  && mysqli_num_rows($result) > 0 ) {
 
         <div class="form-group">
             <label>Sektor</label>
-            <select name="lang_id" id="langSelect">
+            <!-- modal-specific ids to avoid duplicates -->
+            <select name="lang_id" id="langSelectModal">
                 <option value="">Seçin</option>
                 <?php
                 $sql = "SELECT * FROM languages ORDER BY name";
                 $res = mysqli_query($conn, $sql);
                 while ($lang = mysqli_fetch_assoc($res)) {
-                    $lid = (int)$lang['id'];
-                    $lname = htmlspecialchars($lang['name'], ENT_QUOTES);
+                    // support both 'Id' and 'id' column naming
+                    $lid = (int)($lang['Id'] ?? $lang['id'] ?? 0);
+                    $lname = htmlspecialchars($lang['name'] ?? '', ENT_QUOTES);
                     echo "<option value='{$lid}'>{$lname}</option>";
                 }
                 ?>
@@ -368,7 +385,8 @@ if ($result  && mysqli_num_rows($result) > 0 ) {
 
         <div class="form-group">
             <label>Fakültə</label>
-            <select name="faculty_id" id="facultySelect">
+            <!-- modal-specific id -->
+            <select name="faculty_id" id="facultySelectModal">
                 <option value="">Seçin</option>
             </select>
         </div>
@@ -382,109 +400,138 @@ if ($result  && mysqli_num_rows($result) > 0 ) {
 </div>
 
 <script>
-    //axtaris funksiyasi
-    const searchInput = document.getElementById('searchInput');
-    const majorsTable = document.getElementById('majorsTable');
+/* Helper functions (needed by renderTable) */
+function escapeHtml(s){
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/[&<>"']/g, function(m){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+}
+function escapeJsAttr(s){
+    return String(s === undefined || s === null ? '' : s).replace(/(["'\\])/g,'\\$1');
+}
 
-    let majorsData = [];
+// axtaris funksiyasi
+const searchInput = document.getElementById('searchInput');
+const majorsTable = document.getElementById('majorsTable');
 
-    fetch('admin_jsons/major.json.php')
-    .then(res=> res.json())
-    .then(data =>{
-        majorsData = data;
-        renderTable(majorsData);
+let majorsData = [];
+
+// CHANGE THIS if your json filename is different (major.json.php vs majors.json.php)
+const jsonUrl = 'admin_jsons/majors.json.php';
+
+fetch(jsonUrl)
+.then(res => {
+    if (!res.ok) throw new Error('Network response not ok: ' + res.status);
+    return res.json();
+})
+.then(data =>{
+    majorsData = Array.isArray(data) ? data : [];
+    renderTable(majorsData);
+})
+.catch(err=>{
+    console.warn('JSON fetch failed:', err);
+    // keep server-rendered rows as initial content (no crash)
+    // Optionally we can read server table into majorsData for search fallback
+    const rows = Array.from(majorsTable.querySelectorAll('tr'));
+    majorsData = rows.map(r=>{
+        const cells = r.querySelectorAll('td');
+        return {
+            maj_id: (cells[0] ? cells[0].textContent.trim() : ''),
+            maj_name: (cells[1] ? cells[1].textContent.trim() : ''),
+            maj_code: (cells[2] ? cells[2].textContent.trim() : ''),
+            fac_name: (cells[3] ? cells[3].textContent.trim() : ''),
+            grCount: (cells[4] ? cells[4].textContent.trim() : ''),
+            lang_name: (cells[5] ? cells[5].textContent.trim() : '')
+        };
     });
+});
 
+if (searchInput) {
     searchInput.addEventListener('input', function(){
-        const query = this.value.toLowerCase();
-
-        const filtered = majorsData.filter(item =>{
-            return (
-                item.maj_name.toLowerCase().includes(query) ||
-                item.maj_code.toLowerCase().includes(query) ||
-                item.fac_name.toLowerCase().includes(query)
-            );
+        const query = this.value.trim().toLowerCase();
+        if (!query) { renderTable(majorsData); return; }
+        const filtered = majorsData.filter(item=>{
+            const name = (item.maj_name || '').toString().toLowerCase();
+            const code = (item.maj_code || '').toString().toLowerCase();
+            const fac  = (item.fac_name || '').toString().toLowerCase();
+            return name.includes(query) || code.includes(query) || fac.includes(query);
         });
         renderTable(filtered);
     });
+}
 
-    function renderTable(data)
+function renderTable(data)
+{
+    majorsTable.innerHTML = '';
+
+    if (!Array.isArray(data) || data.length === 0)
     {
-        majorsTable.innerHTML = '';
+        majorsTable.innerHTML = '<tr><td colspan="7">Hec bir ixtisas tapilmadi</td></tr>';
+        return;
+    }
 
-        if(data.length === 0)
-        {
-            majorsTable.innerHTML = '<tr><td colspan="7">Hec bir ixtisas tapilmadi</td></tr>';
-            return;
-        }
-
-        data.forEach(item=>{
-            const row = document.createElement('tr');
-            row.innerHTML = `
-            <td>${item.maj_id}</td>
-            <td><a href = "#">${item.maj_name}</a></td>
-            <td>${item.maj_code}</td>
-            <td>${item.fac_name || '-'}</td>
-            <td>${item.grCount  }</td>
-            <td>${item.lang_name || '-'}</td>
+    data.forEach(item=>{
+        const href = `admin_index.php?page=majors&sub=majors_lessons&id=${encodeURIComponent(item.maj_id || '')}`;
+        const grCount = item.grCount ?? item.group_count ?? 0;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(item.maj_id)}</td>
+            <td><a href="${href}">${escapeHtml(item.maj_name)}</a></td>
+            <td>${escapeHtml(item.maj_code || '')}</td>
+            <td>${escapeHtml(item.fac_name || '-')}</td>
+            <td>${escapeHtml(grCount)}</td>
+            <td>${escapeHtml(item.lang_name || '-')}</td>
             <td>
                 <div class='action-buttons'>
                     <button type='button' class='edit-btn'
-                        data-id='${item.maj_id}'
-                        data-name='${item.maj_name}'
-                        data-code='${item.maj_code}'
-                        data-lang='${item.lang_id}'
-                        data-fac='${item.fac_id}'>
+                        data-id='${escapeJsAttr(item.maj_id)}'
+                        data-name='${escapeJsAttr(item.maj_name||'')}'
+                        data-code='${escapeJsAttr(item.maj_code||'')}'
+                        data-lang='${escapeJsAttr(item.lang_id||'')}'
+                        data-fac='${escapeJsAttr(item.fac_id||'')}'>
                         Edit
                     </button>
                     <form method='POST' style='display:inline;'>
                         <input type='hidden' name='action' value='delete_major' />
-                        <input type='hidden' name='delete_id' value='${item.maj_id}' />
+                        <input type='hidden' name='delete_id' value='${escapeJsAttr(item.maj_id)}' />
                         <button class='delete-btn' type='submit'>Delete</button>
                     </form>
                 </div>
             </td>
-            `;
-            majorsTable.appendChild(row);
-             console.log(majorsData);
-        })
-    }
-   
+        `;
+        majorsTable.appendChild(row);
+    });
+}
 
-</script>
+/* Dynamic selects (modal) */
+const langSelectModal = document.getElementById('langSelectModal');
+const facultySelectModal = document.getElementById('facultySelectModal');
 
-<script>
- const langSelect = document.getElementById('langSelect');
-const facultySelect = document.getElementById('facultySelect');
+if (langSelectModal) {
+    langSelectModal.addEventListener('change', function(){
+        const langId = this.value;
+        facultySelectModal.innerHTML = '<option>Yüklənir...</option>';
+        if (!langId) {
+            facultySelectModal.innerHTML = '<option value="">Seçin</option>';
+            return;
+        }
+        fetch('get_faculties.php?lang_id=' + encodeURIComponent(langId))
+            .then(r => r.text())
+            .then(html => { facultySelectModal.innerHTML = html; })
+            .catch(e => { facultySelectModal.innerHTML = '<option value="">Xəta</option>'; });
+    });
+}
 
-langSelect && langSelect.addEventListener('change', function() {
-    const langId = this.value;
-    facultySelect.innerHTML = '<option>Yüklənir...</option>';
-
-    if(langId == "") {
-        facultySelect.innerHTML = '<option value="">Seçin</option>';
-        return;
-    }
-
-    fetch('get_faculties.php?lang_id=' + encodeURIComponent(langId))
-        .then(res => res.text())
-        .then(data => { facultySelect.innerHTML = data; })
-        .catch(err => { facultySelect.innerHTML = '<option value="">Xəta baş verdi</option>'; });
-});
-</script>
-
-<script>
+/* Modal handling (open/edit) */
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('fakulteModal');
     const openBtn = document.getElementById('openModalBtn');
     const closeBtn = document.getElementById('closeModalBtn');
-    const modalTitle = document.getElementById('modalTitle');
+    const fakulteForm = document.getElementById('fakulteForm');
     const majorName = document.getElementById('majorName');
     const majorCode = document.getElementById('majorCode');
-    const fakulteForm = document.getElementById('fakulteForm');
     const saveBtn = document.getElementById('saveBtn');
-    const langSelect = document.getElementById('langSelect');
-    const facultySelect = document.getElementById('facultySelect');
 
     function openModal() {
         modal.classList.add('active');
@@ -496,89 +543,72 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openAddModal() {
-        modalTitle.textContent = "Yeni Ixtisas Əlavə Et";
-        const actionInput = fakulteForm.querySelector("input[name='action']");
-        if (actionInput) actionInput.value = "add_major";
-
+        modal.querySelector("input[name='action']").value = "add_major";
         const oldEdit = fakulteForm.querySelector("input[name='edit_id']");
         if (oldEdit) oldEdit.remove();
-
         majorName.value = "";
         majorCode.value = "";
-        langSelect.value = "";
-        facultySelect.innerHTML = '<option value="">Seçin</option>';
-        if (saveBtn) saveBtn.textContent = "Yadda Saxla";
+        langSelectModal.value = "";
+        facultySelectModal.innerHTML = '<option value="">Seçin</option>';
+        saveBtn.textContent = "Yadda Saxla";
         openModal();
     }
 
     function openEditModal(data) {
-        modalTitle.textContent = "İxtisas Yenilə";
-        const actionInput = fakulteForm.querySelector("input[name='action']");
-        if (actionInput) actionInput.value = "edit_major";
-
+        modal.querySelector("input[name='action']").value = "edit_major";
         const oldEditInput = fakulteForm.querySelector("input[name='edit_id']");
         if (oldEditInput) oldEditInput.remove();
 
         const editInput = document.createElement("input");
         editInput.type = "hidden";
         editInput.name = "edit_id";
-        editInput.id = "edit_id";
-        editInput.value = data.id;
-        if (actionInput) actionInput.insertAdjacentElement("afterend", editInput);
-        else fakulteForm.prepend(editInput);
+        editInput.value = data.id || '';
+        fakulteForm.appendChild(editInput);
 
-        majorName.value = data.name;
-        majorCode.value = data.code;
+        majorName.value = data.name || '';
+        majorCode.value = data.code || '';
 
         if (data.lang) {
-            langSelect.value = data.lang;
-            facultySelect.innerHTML = '<option>Yüklənir...</option>';
+            langSelectModal.value = data.lang;
+            facultySelectModal.innerHTML = '<option>Yüklənir...</option>';
             fetch('get_faculties.php?lang_id=' + encodeURIComponent(data.lang))
                 .then(res => res.text())
                 .then(html => {
-                    facultySelect.innerHTML = html;
-                    if (data.fac) {
-                        try {
-                            facultySelect.value = data.fac;
-                        } catch (e) {}
-                    }
+                    facultySelectModal.innerHTML = html;
+                    if (data.fac) facultySelectModal.value = data.fac;
                 })
                 .catch(err => {
-                    facultySelect.innerHTML = '<option value="">Xəta baş verdi</option>';
+                    facultySelectModal.innerHTML = '<option value="">Xəta baş verdi</option>';
                 });
         } else {
-            langSelect.value = "";
-            facultySelect.innerHTML = '<option value="">Seçin</option>';
+            langSelectModal.value = "";
+            facultySelectModal.innerHTML = '<option value="">Seçin</option>';
         }
 
-        if (saveBtn) saveBtn.textContent = "Yenilə";
+        saveBtn.textContent = "Yenilə";
         openModal();
     }
 
-    // attach edit handlers
-  majorsTable.addEventListener('click', function(e) {
-    if(e.target.classList.contains('edit-btn')) {
-        const btn = e.target;
-        const id = btn.dataset.id || "";
-        const name = btn.dataset.name || "";
-        const code = btn.dataset.code || "";
-        const lang = btn.dataset.lang || "";
-        const fac = btn.dataset.fac || "";
-
-        openEditModal({ id, name, code, lang, fac });
-    }
-});
-
+    // attach edit handlers by delegation
+    majorsTable.addEventListener('click', function(e) {
+        const target = e.target;
+        if (target && target.classList.contains('edit-btn')) {
+            const btn = target;
+            const data = {
+                id: btn.dataset.id || '',
+                name: btn.dataset.name || '',
+                code: btn.dataset.code || '',
+                lang: btn.dataset.lang || '',
+                fac: btn.dataset.fac || ''
+            };
+            openEditModal(data);
+        }
+    });
 
     openBtn && openBtn.addEventListener('click', openAddModal);
     closeBtn && closeBtn.addEventListener('click', closeModal);
-
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-    });
-    window.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-    });
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+    window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
 });
 </script>
 
