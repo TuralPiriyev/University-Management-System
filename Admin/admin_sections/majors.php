@@ -84,23 +84,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // PREVENT 404 for missing lessons.css: include link only if file exists in same dir,
 // otherwise include a minimal fallback style to keep layout sane.
 // Adjust path if your lessons.css is located elsewhere.
-$cssRelPath = 'lessons.css';
-$cssAbs = __DIR__ . '/' . $cssRelPath;
-if (file_exists($cssAbs)) {
-    echo '<link rel="stylesheet" href="' . htmlspecialchars($cssRelPath, ENT_QUOTES) . '"/>';
-} else {
-    // minimal fallback style to avoid broken layout & 404 in console
-    echo '<style>
-    /* fallback minimal styles (you can remove when lessons.css is present) */
-    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;margin:0;padding:18px}
-    .content-section{background:#fff;padding:24px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-    .add-button{background:#27ae60;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer}
-    table{width:100%;border-collapse:collapse;margin-top:14px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    .search-input{padding:10px;border-radius:6px;border:1px solid #ddd;width:320px}
-    .action-buttons button{margin-right:6px}
-    </style>';
-}
+// $cssRelPath = 'lessons.css';
+// $cssAbs = __DIR__ . '/' . $cssRelPath;
+// if (file_exists($cssAbs)) {
+//     echo '<link rel="stylesheet" href="' . htmlspecialchars($cssRelPath, ENT_QUOTES) . '"/>';
+// } else {
+//     // minimal fallback style to avoid broken layout & 404 in console
+//     echo '<style>
+//     /* fallback minimal styles (you can remove when lessons.css is present) */
+//     body{font-family:Arial,Helvetica,sans-serif;background:#f4f6f8;margin:0; }
+//     .content-section{background:#fff;padding:24px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+//     .add-button{background:#27ae60;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer}
+//     table{width:100%;border-collapse:collapse;margin-top:14px}
+//     th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+//     .search-input{padding:10px;border-radius:6px;border:1px solid #ddd;width:320px}
+//     .action-buttons button{margin-right:6px}
+//     </style>';
+// }
 ?>
 
 <style>

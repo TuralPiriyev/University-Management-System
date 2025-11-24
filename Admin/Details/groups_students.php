@@ -319,27 +319,50 @@ function renderTableFromData(data) {
     }
     data.forEach(item => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.st_id}</td>
-                        <td><a href=\"admin_index.php?page=groups&sub=students_details&id=". (int)$stId ."\">${escapeHtml(item.st_username||'-')}</a></td>
-                        <td>${escapeHtml(item.st_email||'-')}</td>
-                        <td>${escapeHtml(item.st_point||'-')}</td>
-                        <td>${escapeHtml(item.fac_name||'-')}</td>
-                        <td>${escapeHtml(item.maj_name||'-')}</td>
-                        <td>${escapeHtml(item.gr_name||'-')}</td>
-                        <td>${escapeHtml(item.lang_name||'-')}</td>
-                        <td>
-                          <div class="action-buttons">
-                            <button type="button" class="edit-student-btn" data-id="${item.st_id}" data-username="${escapeJsAttr(item.st_username||'')}" data-email="${escapeJsAttr(item.st_email||'')}" data-point="${escapeJsAttr(item.st_point||'')}">Edit</button>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('Silmək istədiyinizdən əminsiniz?');">
-                                <input type="hidden" name="action" value="delete_student" />
-                                <input type="hidden" name="delete_id" value="${item.st_id}" />
-                                <button class="delete-btn" type="submit">Delete</button>
-                            </form>
-                          </div>
-                        </td>`;
+
+        // build safe values
+        const id = item.st_id || '';
+        const username = escapeHtml(item.st_username || '-');
+        const email = escapeHtml(item.st_email || '-');
+        const point = escapeHtml(item.st_point || '-');
+        const fac = escapeHtml(item.fac_name || '-');
+        const maj = escapeHtml(item.maj_name || '-');
+        const gr  = escapeHtml(item.gr_name || '-');
+        const lang = escapeHtml(item.lang_name || '-');
+
+        // create proper link using the id from item
+        const profileHref = 'admin_index.php?page=groups&sub=students_details&id=' + encodeURIComponent(id);
+
+        tr.innerHTML = `
+            <td>${escapeHtml(id)}</td>
+            <td><a href="${profileHref}">${username}</a></td>
+            <td>${email}</td>
+            <td>${point}</td>
+            <td>${fac}</td>
+            <td>${maj}</td>
+            <td>${gr}</td>
+            <td>${lang}</td>
+            <td>
+              <div class="action-buttons">
+                <button type="button" class="edit-student-btn"
+                        data-id="${escapeJsAttr(id)}"
+                        data-username="${escapeJsAttr(item.st_username||'')}"
+                        data-email="${escapeJsAttr(item.st_email||'')}"
+                        data-point="${escapeJsAttr(item.st_point||'')}">
+                  Edit
+                </button>
+                <form method="POST" style="display:inline;" onsubmit="return confirm('Silmək istədiyinizdən əminsiniz?');">
+                    <input type="hidden" name="action" value="delete_student" />
+                    <input type="hidden" name="delete_id" value="${escapeJsAttr(id)}" />
+                    <button class="delete-btn" type="submit">Delete</button>
+                </form>
+              </div>
+            </td>`;
+
         studentsTableServer.appendChild(tr);
     });
 }
+
 
 // Fetch JSON (preferred) and fallback to server-rendered rows if fetch fails
 fetch(fetchUrl)
