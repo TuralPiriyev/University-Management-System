@@ -81,7 +81,7 @@ $result = $stmt->get_result();
                     </div>
                     <div>
                         <div class="info-label">Qayıb</div>
-                        <div class="info-value"><?php echo $qb; ?></div>
+                        <div class="info-value">0/<?php echo $qb; ?></div>
                     </div>
                 </div>
 
@@ -89,7 +89,7 @@ $result = $stmt->get_result();
                     <strong>Müəllim:</strong> <?php echo $tname; ?>
                 </div>
 
-                <a href="admin_index.php?page=lessons&sub=detail&id=<?php echo $lid; ?>" class="more-info">
+                <a href="admin_index.php?page=groups&sub=lessons_details&id=<?php echo $lid; ?>" class="more-info">
                     Ətraflı məlumat
                 </a>
             </div>

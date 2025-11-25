@@ -12,7 +12,7 @@ $map = [
   'users' => 'admin_sections/users.php',
   'faculties' => 'admin_sections/faculties.php',
   'majors' => 'admin_sections/majors.php',
-  'groups' => 'admin_sections/groups.php'
+  'groups' => 'admin_sections/groups.php',
 ];
 
 $page = $_GET['page'] ?? 'users';
@@ -24,13 +24,13 @@ if (!isset($map[$page])) {
 }
 
 // Əgər groups səhifəsi və sub == details (və ya students_details) və id paramı varsa — details partial-ı include et
-if ($page === 'groups' && in_array($sub, ['details', 'students_details']) && isset($_GET['id'])) {
+if ($page === 'groups' && in_array($sub, ['details', 'students_details','lessons_details']) && isset($_GET['id'])) {
     // Təyin et hansı faylı çağırmaq lazımdır
     if ($sub === 'students_details') {
         $detailRel = 'Details/students_details.php';
     } 
-     elseif ($sub === 'majors_lessons') {
-        $detailRel = 'Details/majors_lessons.php';
+     elseif ($sub === 'lessons_details') {
+        $detailRel = 'Details/lessons_details.php';
     }
     else { // 'details' — sənin qrupun tələbələr siyahısı partial-ı
         $detailRel = 'Details/groups_students.php';
@@ -52,6 +52,7 @@ if ($page === 'majors' && in_array($sub, ['majors_lessons']) && isset($_GET['id'
     if ($sub === 'majors_lessons') {
         $detailRel = 'Details/majors_lessons.php';
     }
+    
     else { // 'details' — sənin qrupun tələbələr siyahısı partial-ı
         $detailRel = 'Details/majors';
     }
@@ -67,6 +68,6 @@ if ($page === 'majors' && in_array($sub, ['majors_lessons']) && isset($_GET['id'
         return;
     }
 }
-
 // default include (normal page)
 include __DIR__ . '/' . $map[$page];
+?>
