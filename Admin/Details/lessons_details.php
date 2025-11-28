@@ -1,3 +1,20 @@
+<?php
+  require_once "../db.php";
+  
+  // Tələbələri çəkmək
+  $students = [];
+  // $students = $conn->query("SELECT * FROM students ORDER BY name")->fetch_all(MYSQLI_ASSOC);
+  
+  // Qiymətləndirmə kateqoriyalarını çəkmək
+  $categories = [];
+  // $categories = $conn->query("SELECT * FROM grade_categories ORDER BY display_order")->fetch_all(MYSQLI_ASSOC);
+  
+  $selectedStudentId = $_GET['student_id'] ?? 1;
+  
+  // Seçilmiş tələbənin qiymətlərini çəkmək
+  $grades = [];
+  // $grades = $conn->query("SELECT * FROM grades WHERE student_id = $selectedStudentId")->fetch_all(MYSQLI_ASSOC);
+?>
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -5,16 +22,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tələbə Qiymətləndirmə</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
         .grades-main-content {
             padding: 20px;
-            background: #f5f5f5;
+            max-width: 1400px;
+            margin: 0 auto;
             height: 100%;
             overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .grades-main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .grades-main-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .grades-main-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .grades-main-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .content-header {
             background: white;
-            padding: 15px 20px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
@@ -27,11 +76,7 @@
 
         .content-header h2 {
             color: #2c3e50;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
+            font-size: 24px;
         }
 
         .header-controls {
@@ -41,13 +86,12 @@
         }
 
         .student-select {
-            padding: 8px 15px;
+            padding: 10px 15px;
             border: 2px solid #ecf0f1;
             border-radius: 5px;
             font-size: 14px;
             cursor: pointer;
             background: white;
-            transition: all 0.3s;
         }
 
         .student-select:focus {
@@ -55,61 +99,14 @@
             border-color: #667eea;
         }
 
-        .btn-settings {
-            padding: 8px 16px;
-            background: #ed8936;
-            color: white;
+        .btn {
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-        }
-
-        .btn-settings:hover {
-            background: #dd6b20;
-        }
-
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .card h3 {
-            color: #2c3e50;
-            font-size: 18px;
-            margin: 0 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ecf0f1;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
         }
 
         .btn-primary {
@@ -139,106 +136,111 @@
             background: #c0392b;
         }
 
-        .btn-small {
-            padding: 4px 8px;
-            font-size: 11px;
-        }
-
-        .grades-grid {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .grade-category {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 8px;
-            padding: 12px;
-            border: 2px solid #dee2e6;
-            transition: all 0.3s;
-        }
-
-        .grade-category:hover {
-            border-color: #667eea;
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.15);
-        }
-
-        .category-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #ced4da;
-        }
-
-        .category-title {
-            color: #2c3e50;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .category-weight {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-warning {
+            background: #ed8936;
             color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
         }
 
-        .grade-items {
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .add-grade-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            max-height: 160px;
-            overflow-y: auto;
-            margin-bottom: 8px;
         }
 
-        .grade-items::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .grade-items::-webkit-scrollbar-track {
-            background: #e9ecef;
-            border-radius: 3px;
-        }
-
-        .grade-items::-webkit-scrollbar-thumb {
-            background: #ced4da;
-            border-radius: 3px;
-        }
-
-        .grade-item {
-            background: white;
-            padding: 8px 10px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: 1px solid #dee2e6;
-        }
-
-        .grade-item:hover {
-            border-color: #667eea;
-            transform: translateX(2px);
-            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.12);
-        }
-
-        .grade-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .grade-date {
+        .form-group label {
             font-weight: 600;
             color: #495057;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .grades-table {
+            overflow-x: auto;
+        }
+
+        .grades-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .grades-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .grades-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .grades-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .category-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
         }
 
         .grade-value {
@@ -247,23 +249,14 @@
             color: #667eea;
         }
 
-        .add-grade-btn {
-            background: white;
-            color: #48bb78;
-            border: 2px dashed #48bb78;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.2s;
-            width: 100%;
+        .action-btns {
+            display: flex;
+            gap: 5px;
         }
 
-        .add-grade-btn:hover {
-            background: #f0fff4;
-            border-color: #38a169;
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
         }
 
         .month-navigation {
@@ -313,6 +306,8 @@
             transition: all 0.2s;
             font-weight: 600;
             font-size: 13px;
+            min-width: 35px;
+            height: 35px;
         }
 
         .day-cell.absent {
@@ -320,48 +315,79 @@
             color: white;
         }
 
-        .day-cell:hover {
-            background: #e9ecef;
+        .day-cell:not(:empty):hover {
+            background: #667eea !important;
+            color: white;
+            transform: scale(1.05);
         }
 
-        .weights-display {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+        .categories-list {
+            display: flex;
+            flex-direction: column;
             gap: 10px;
-            margin-top: 15px;
         }
 
-        .weight-item {
+        .category-item {
             background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
         }
 
-        .weight-label {
-            font-size: 11px;
-            color: #6c757d;
-            font-weight: 600;
-            margin-bottom: 4px;
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .weight-value {
-            font-size: 18px;
+        .category-name {
             font-weight: 700;
-            color: #667eea;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .category-weight {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .final-grade-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .final-grade-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .final-grade-value {
+            font-size: 48px;
+            font-weight: 700;
         }
 
         .alert {
-            padding: 12px 15px;
+            padding: 15px;
             border-radius: 6px;
-            margin-bottom: 15px;
-            display: none;
+            margin-bottom: 20px;
             font-weight: 600;
-            font-size: 14px;
-        }
-
-        .alert.active {
-            display: block;
         }
 
         .alert-success {
@@ -395,47 +421,16 @@
 
         .modal-content {
             background: white;
-            padding: 25px;
+            padding: 30px;
             border-radius: 10px;
-            max-width: 450px;
+            max-width: 500px;
             width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
         .modal-content h3 {
             margin-bottom: 20px;
             color: #2c3e50;
-            font-size: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            color: #495057;
-            font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #dee2e6;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
         }
 
         .modal-actions {
@@ -446,472 +441,448 @@
 
         .modal-btn {
             flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 12px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1024px) {
             .grid-layout {
                 grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 768px) {
-            .grades-grid {
+            .form-row {
                 grid-template-columns: 1fr;
-            }
-            .weights-display {
-                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
 </head>
 <body>
     <div class="grades-main-content">
-        <div id="alert" class="alert"></div>
+        <!-- Alerts -->
+        <?php if(isset($_SESSION['success'])): ?>
+            <div class="alert alert-success">
+                <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if(isset($_SESSION['error'])): ?>
+            <div class="alert alert-error">
+                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
 
+        <!-- Header -->
         <div class="content-header">
             <h2>📊 Tələbə Qiymətləndirmə Sistemi</h2>
             <div class="header-controls">
-                <select class="student-select" id="studentSelect">
-                    <option value="1">Əli Məmmədov</option>
-                    <option value="2">Leyla İbrahimova</option>
-                    <option value="3">Rəşad Həsənov</option>
-                </select>
-                <button class="btn-settings" onclick="openSettingsModal()">⚙️ Parametrlər</button>
+                <form method="GET" style="margin: 0;">
+                    <select class="student-select" name="student_id" onchange="this.form.submit()">
+                        <option value="1" <?php echo $selectedStudentId == 1 ? 'selected' : ''; ?>>Əli Məmmədov</option>
+                        <option value="2" <?php echo $selectedStudentId == 2 ? 'selected' : ''; ?>>Leyla İbrahimova</option>
+                        <option value="3" <?php echo $selectedStudentId == 3 ? 'selected' : ''; ?>>Rəşad Həsənov</option>
+                    </select>
+                </form>
+                <button class="btn btn-warning" onclick="openCategoryModal()">⚙️ Kateqoriyalar</button>
             </div>
         </div>
 
         <div class="grid-layout">
-            <!-- Qiymətlər -->
-            <div class="card">
-                <h3>📊 Qiymətlər</h3>
-                <div class="grades-grid" id="gradesGrid"></div>
-                <div class="weights-display" id="weightsDisplay"></div>
+            <!-- Sol tərəf - Qiymətlər və Qayıblar -->
+            <div>
+                <!-- Qiymət əlavə et -->
+                <div class="card">
+                    <h3>➕ Yeni Qiymət Əlavə Et</h3>
+                    <div class="add-grade-section">
+                        <form method="POST" action="add_grade.php">
+                            <input type="hidden" name="student_id" value="<?php echo $selectedStudentId; ?>">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tarix</label>
+                                    <input type="date" name="date" value="<?php echo date('Y-m-d'); ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Kateqoriya</label>
+                                    <select name="category_id" required>
+                                        <option value="1">Quiz</option>
+                                        <option value="2">Midterm</option>
+                                        <option value="3">Lab İşi</option>
+                                        <option value="4">Təqdimat</option>
+                                        <option value="5">İmtahan</option>
+                                        <!-- Dinamik: <?php /* foreach($categories as $cat): ?>
+                                            <option value="<?php echo $cat['id']; ?>"><?php echo $cat['name']; ?></option>
+                                        <?php endforeach; */ ?> -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Qiymət (0-100)</label>
+                                    <input type="number" name="grade_value" min="0" max="100" step="0.1" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success" style="width: 100%;">💾 Qiyməti Saxla</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Qiymətlər cədvəli -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3>📋 Qiymətlər Cədvəli</h3>
+                    <div class="grades-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tarix</th>
+                                    <th>Kateqoriya</th>
+                                    <th>Qiymət</th>
+                                    <th>Əməliyyatlar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Nümunə məlumat -->
+                                <tr>
+                                    <td>2024-11-15</td>
+                                    <td><span class="category-badge">Quiz</span></td>
+                                    <td><span class="grade-value">85</span></td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn btn-primary btn-small" onclick="editGrade(1)">✏️ Redaktə</button>
+                                            <form method="POST" action="delete_grade.php" style="display: inline;" onsubmit="return confirm('Silmək istədiyinizə əminsiniz?')">
+                                                <input type="hidden" name="grade_id" value="1">
+                                                <button type="submit" class="btn btn-danger btn-small">🗑️ Sil</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2024-11-20</td>
+                                    <td><span class="category-badge">Midterm</span></td>
+                                    <td><span class="grade-value">78</span></td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn btn-primary btn-small" onclick="editGrade(2)">✏️ Redaktə</button>
+                                            <form method="POST" action="delete_grade.php" style="display: inline;" onsubmit="return confirm('Silmək istədiyinizə əminsiniz?')">
+                                                <input type="hidden" name="grade_id" value="2">
+                                                <button type="submit" class="btn btn-danger btn-small">🗑️ Sil</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- PHP loop: <?php /* foreach($grades as $grade): ?>
+                                <tr>
+                                    <td><?php echo $grade['date']; ?></td>
+                                    <td><span class="category-badge"><?php echo $grade['category_name']; ?></span></td>
+                                    <td><span class="grade-value"><?php echo $grade['value']; ?></span></td>
+                                    <td>...</td>
+                                </tr>
+                                <?php endforeach; */ ?> -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Qayıblar -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3>📅 Qayıblar</h3>
+                    <div class="month-navigation">
+                        <form method="GET" style="display: inline;">
+                            <input type="hidden" name="student_id" value="<?php echo $selectedStudentId; ?>">
+                            <input type="hidden" name="month" value="<?php echo isset($_GET['month']) ? $_GET['month'] - 1 : date('n') - 1; ?>">
+                            <input type="hidden" name="year" value="<?php echo isset($_GET['year']) ? $_GET['year'] : date('Y'); ?>">
+                            <button type="submit" class="btn btn-primary btn-small">◀ Əvvəl</button>
+                        </form>
+                        <span class="month-title">
+                            <?php
+                                $currentMonth = isset($_GET['month']) ? (int)$_GET['month'] : date('n');
+                                $currentYear = isset($_GET['year']) ? (int)$_GET['year'] : date('Y');
+                                $monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+                                echo $monthNames[$currentMonth - 1] . ' ' . $currentYear;
+                            ?>
+                        </span>
+                        <form method="GET" style="display: inline;">
+                            <input type="hidden" name="student_id" value="<?php echo $selectedStudentId; ?>">
+                            <input type="hidden" name="month" value="<?php echo isset($_GET['month']) ? $_GET['month'] + 1 : date('n') + 1; ?>">
+                            <input type="hidden" name="year" value="<?php echo isset($_GET['year']) ? $_GET['year'] : date('Y'); ?>">
+                            <button type="submit" class="btn btn-primary btn-small">Sonra ▶</button>
+                        </form>
+                    </div>
+                    <div class="absence-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>B.e</th>
+                                    <th>Bazar</th>
+                                    <th>Ç.axşam</th>
+                                    <th>Çərşənbə</th>
+                                    <th>C.axşam</th>
+                                    <th>Cümə</th>
+                                    <th>Şənbə</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                    // Ay üçün günləri hesabla
+                                    $firstDay = mktime(0, 0, 0, $currentMonth, 1, $currentYear);
+                                    $daysInMonth = date('t', $firstDay);
+                                    $startDay = date('w', $firstDay);
+                                    $weekCount = ceil(($daysInMonth + $startDay) / 7);
+                                    
+                                    $currentDay = 1;
+                                    
+                                    for ($week = 0; $week < $weekCount; $week++) {
+                                        echo '<tr>';
+                                        for ($day = 0; $day < 7; $day++) {
+                                            if (($week == 0 && $day < $startDay) || $currentDay > $daysInMonth) {
+                                                echo '<td>-</td>';
+                                            } else {
+                                                $dateStr = sprintf('%04d-%02d-%02d', $currentYear, $currentMonth, $currentDay);
+                                                // Qayıb olub-olmadığını yoxla
+                                                // $isAbsent = checkAbsence($selectedStudentId, $dateStr);
+                                                $isAbsent = false; // Nümunə
+                                                
+                                                $class = $isAbsent ? 'day-cell absent' : 'day-cell';
+                                                echo '<td class="' . $class . '" onclick="toggleAbsence(' . $selectedStudentId . ', \'' . $dateStr . '\', this)">' . $currentDay . '</td>';
+                                                $currentDay++;
+                                            }
+                                        }
+                                        echo '</tr>';
+                                    }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <!-- Qayıblar -->
-            <div class="card">
-                <h3>📅 Qayıblar</h3>
-                <div class="month-navigation">
-                    <button class="btn btn-primary btn-small" onclick="previousMonth()">◀ Əvvəl</button>
-                    <span class="month-title" id="currentMonthTitle"></span>
-                    <button class="btn btn-primary btn-small" onclick="nextMonth()">Sonra ▶</button>
+            <!-- Sağ tərəf - Kateqoriyalar və Final -->
+            <div>
+                <!-- Kateqoriyalar -->
+                <div class="card">
+                    <h3>📊 Qiymətləndirmə Kateqoriyaları</h3>
+                    <div class="categories-list">
+                        <!-- Nümunə -->
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Quiz</span>
+                                <span class="category-weight">10%</span>
+                            </div>
+                            <div class="category-actions">
+                                <button class="btn btn-primary btn-small" onclick="editCategory(1)">✏️ Redaktə</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCategory(1)">🗑️ Sil</button>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Midterm</span>
+                                <span class="category-weight">25%</span>
+                            </div>
+                            <div class="category-actions">
+                                <button class="btn btn-primary btn-small" onclick="editCategory(2)">✏️ Redaktə</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCategory(2)">🗑️ Sil</button>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Lab İşi</span>
+                                <span class="category-weight">15%</span>
+                            </div>
+                            <div class="category-actions">
+                                <button class="btn btn-primary btn-small" onclick="editCategory(3)">✏️ Redaktə</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCategory(3)">🗑️ Sil</button>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Təqdimat</span>
+                                <span class="category-weight">15%</span>
+                            </div>
+                            <div class="category-actions">
+                                <button class="btn btn-primary btn-small" onclick="editCategory(4)">✏️ Redaktə</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCategory(4)">🗑️ Sil</button>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">İmtahan</span>
+                                <span class="category-weight">35%</span>
+                            </div>
+                            <div class="category-actions">
+                                <button class="btn btn-primary btn-small" onclick="editCategory(5)">✏️ Redaktə</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCategory(5)">🗑️ Sil</button>
+                            </div>
+                        </div>
+                        <!-- PHP loop: <?php /* foreach($categories as $cat): ?> ... <?php endforeach; */ ?> -->
+                    </div>
                 </div>
-                <div class="absence-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>B.e</th>
-                                <th>Bazar</th>
-                                <th>Ç.axşam</th>
-                                <th>Çərşənbə</th>
-                                <th>C.axşam</th>
-                                <th>Cümə</th>
-                                <th>Şənbə</th>
-                            </tr>
-                        </thead>
-                        <tbody id="absenceTableBody"></tbody>
-                    </table>
+
+                <!-- Final Qiymət -->
+                <div class="final-grade-section">
+                    <div class="final-grade-label">FINAL QİYMƏT</div>
+                    <div class="final-grade-value">
+                        <?php
+                            // Burada PHP-də hesablama aparılacaq
+                            // $finalGrade = calculateFinalGrade($selectedStudentId);
+                            echo "82.5";
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Grade Modal -->
-    <div class="modal" id="gradeModal">
+    <!-- Kateqoriya Modal -->
+    <div class="modal" id="categoryModal">
         <div class="modal-content">
-            <h3 id="gradeModalTitle">Qiymət Əlavə Et</h3>
-            <form id="gradeForm" onsubmit="saveGrade(event)">
-                <input type="hidden" id="editGradeId">
+            <h3 id="categoryModalTitle">Yeni Kateqoriya</h3>
+            <form method="POST" action="save_category.php" id="categoryForm">
+                <input type="hidden" name="category_id" id="categoryId">
                 <div class="form-group">
-                    <label>Tarix</label>
-                    <input type="date" id="gradeDate" required>
+                    <label>Kateqoriya Adı</label>
+                    <input type="text" name="category_name" id="categoryName" required>
                 </div>
                 <div class="form-group">
-                    <label>Kateqoriya</label>
-                    <select id="gradeCategory" required>
-                        <option value="quiz">Quiz</option>
-                        <option value="midterm">Midterm</option>
-                        <option value="presentation">Təqdimat</option>
-                        <option value="exam">İmtahan</option>
-                        <option value="final">Final</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Qiymət (0-100)</label>
-                    <input type="number" id="gradeValue" min="0" max="100" step="0.1" required>
+                    <label>Ağırlıq (%)</label>
+                    <input type="number" name="weight" id="categoryWeight" min="0" max="100" required>
                 </div>
                 <div class="modal-actions">
-                    <button type="submit" class="modal-btn btn-success">💾 Saxla</button>
-                    <button type="button" class="modal-btn btn-danger" onclick="closeModal('gradeModal')">❌ Ləğv et</button>
+                    <button type="submit" class="btn btn-success modal-btn">💾 Saxla</button>
+                    <button type="button" class="btn btn-danger modal-btn" onclick="closeModal()">❌ Ləğv et</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal" id="settingsModal">
+    <!-- Qiymət Redaktə Modal -->
+    <div class="modal" id="gradeModal">
         <div class="modal-content">
-            <h3>Ağırlıq Parametrləri</h3>
-            <form id="settingsForm" onsubmit="saveSettings(event)">
+            <h3>Qiyməti Redaktə Et</h3>
+            <form method="POST" action="update_grade.php" id="gradeForm">
+                <input type="hidden" name="grade_id" id="gradeId">
                 <div class="form-group">
-                    <label>Quiz (%)</label>
-                    <input type="number" id="weightQuiz" min="0" max="100" value="10" required>
+                    <label>Tarix</label>
+                    <input type="date" name="date" id="gradeDate" required>
                 </div>
                 <div class="form-group">
-                    <label>Midterm (%)</label>
-                    <input type="number" id="weightMidterm" min="0" max="100" value="25" required>
+                    <label>Kateqoriya</label>
+                    <select name="category_id" id="gradeCategory" required>
+                        <option value="1">Quiz</option>
+                        <option value="2">Midterm</option>
+                        <option value="3">Lab İşi</option>
+                        <option value="4">Təqdimat</option>
+                        <option value="5">İmtahan</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Təqdimat (%)</label>
-                    <input type="number" id="weightPresentation" min="0" max="100" value="15" required>
-                </div>
-                <div class="form-group">
-                    <label>İmtahan (%)</label>
-                    <input type="number" id="weightExam" min="0" max="100" value="25" required>
-                </div>
-                <div class="form-group">
-                    <label>Final (%)</label>
-                    <input type="number" id="weightFinal" min="0" max="100" value="25" required>
+                    <label>Qiymət (0-100)</label>
+                    <input type="number" name="grade_value" id="gradeValue" min="0" max="100" step="0.1" required>
                 </div>
                 <div class="modal-actions">
-                    <button type="submit" class="modal-btn btn-success">💾 Saxla</button>
-                    <button type="button" class="modal-btn btn-danger" onclick="closeModal('settingsModal')">❌ Ləğv et</button>
+                    <button type="submit" class="btn btn-success modal-btn">💾 Yenilə</button>
+                    <button type="button" class="btn btn-danger modal-btn" onclick="closeModal()">❌ Ləğv et</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let data = {
-            grades: [],
-            absences: {},
-            weights: {
-                quiz: 10,
-                midterm: 25,
-                presentation: 15,
-                exam: 25,
-                final: 25
-            },
-            selectedStudent: 1,
-            currentMonth: new Date().getMonth(),
-            currentYear: new Date().getFullYear()
-        };
-
-        const monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-        const categoryNames = {
-            quiz: 'Quiz',
-            midterm: 'Midterm',
-            presentation: 'Təqdimat',
-            exam: 'İmtahan',
-            final: 'Final'
-        };
-
-        function init() {
-            loadData();
-            document.getElementById('studentSelect').value = data.selectedStudent;
-            document.getElementById('studentSelect').addEventListener('change', function(e) {
-                data.selectedStudent = parseInt(e.target.value);
-                saveData();
-                render();
-            });
-            document.getElementById('gradeDate').valueAsDate = new Date();
-            render();
-        }
-
-        function loadData() {
-            const stored = localStorage.getItem('grades_system_v4');
-            if (stored) {
-                const loaded = JSON.parse(stored);
-                data = {...data, ...loaded};
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('grades_system_v4', JSON.stringify(data));
-        }
-
-        function render() {
-            renderGrades();
-            renderAbsences();
-            renderWeights();
-        }
-
-        function renderGrades() {
-            const grid = document.getElementById('gradesGrid');
-            grid.innerHTML = '';
-
-            const studentGrades = data.grades.filter(g => g.studentId === data.selectedStudent);
-            const categories = ['quiz', 'midterm', 'presentation', 'exam', 'final'];
-
-            categories.forEach(category => {
-                const categoryGrades = studentGrades.filter(g => g.category === category);
-                categoryGrades.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'grade-category';
-
-                const header = document.createElement('div');
-                header.className = 'category-header';
-                header.innerHTML = `
-                    <span class="category-title">${categoryNames[category]}</span>
-                    <span class="category-weight">${data.weights[category]}%</span>
-                `;
-                categoryDiv.appendChild(header);
-
-                const itemsDiv = document.createElement('div');
-                itemsDiv.className = 'grade-items';
-
-                categoryGrades.forEach(grade => {
-                    const item = document.createElement('div');
-                    item.className = 'grade-item';
-                    item.onclick = () => editGrade(grade.id);
-                    item.innerHTML = `
-                        <div class="grade-info">
-                            <span class="grade-date">${grade.date}</span>
-                            <span class="grade-value">${grade.value}</span>
-                        </div>
-                        <button class="btn btn-danger btn-small" onclick="event.stopPropagation(); deleteGrade(${grade.id})" title="Sil">🗑️</button>
-                    `;
-                    itemsDiv.appendChild(item);
-                });
-
-                categoryDiv.appendChild(itemsDiv);
-
-                const addBtn = document.createElement('div');
-                addBtn.className = 'add-grade-btn';
-                addBtn.textContent = '+ Əlavə et';
-                addBtn.onclick = () => openGradeModal(category);
-                categoryDiv.appendChild(addBtn);
-
-                grid.appendChild(categoryDiv);
-            });
-        }
-
-        function openGradeModal(category = null, gradeId = null) {
-            document.getElementById('gradeModalTitle').textContent = gradeId ? 'Qiyməti Redaktə Et' : 'Qiymət Əlavə Et';
-            document.getElementById('editGradeId').value = gradeId || '';
-
-            if (gradeId) {
-                const grade = data.grades.find(g => g.id === gradeId);
-                if (grade) {
-                    document.getElementById('gradeDate').value = grade.date;
-                    document.getElementById('gradeCategory').value = grade.category;
-                    document.getElementById('gradeValue').value = grade.value;
-                }
+        function openCategoryModal(categoryId = null) {
+            const modal = document.getElementById('categoryModal');
+            const title = document.getElementById('categoryModalTitle');
+            
+            if (categoryId) {
+                title.textContent = 'Kateqoriyanı Redaktə Et';
+                document.getElementById('categoryId').value = categoryId;
+                // AJAX ilə kateqoriya məlumatlarını yüklə
+                // fetch(`get_category.php?id=${categoryId}`)...
             } else {
-                document.getElementById('gradeForm').reset();
-                document.getElementById('gradeDate').valueAsDate = new Date();
-                if (category) {
-                    document.getElementById('gradeCategory').value = category;
-                }
+                title.textContent = 'Yeni Kateqoriya';
+                document.getElementById('categoryForm').reset();
+                document.getElementById('categoryId').value = '';
             }
+            
+            modal.classList.add('active');
+        }
 
-            document.getElementById('gradeModal').classList.add('active');
+        function editCategory(categoryId) {
+            openCategoryModal(categoryId);
+        }
+
+        function deleteCategory(categoryId) {
+            if (confirm('Bu kateqoriyanı silmək istədiyinizə əminsiniz?')) {
+                // Form submit və ya AJAX
+                window.location.href = `delete_category.php?id=${categoryId}`;
+            }
         }
 
         function editGrade(gradeId) {
-            openGradeModal(null, gradeId);
-        }
-
-        function saveGrade(e) {
-            e.preventDefault();
-
-            const gradeId = document.getElementById('editGradeId').value;
-            const date = document.getElementById('gradeDate').value;
-            const category = document.getElementById('gradeCategory').value;
-            const value = parseFloat(document.getElementById('gradeValue').value);
-
-            if (gradeId) {
-                const grade = data.grades.find(g => g.id === parseInt(gradeId));
-                if (grade) {
-                    grade.date = date;
-                    grade.category = category;
-                    grade.value = value;
-                }
-            } else {
-                data.grades.push({
-                    id: Date.now(),
-                    studentId: data.selectedStudent,
-                    date: date,
-                    category: category,
-                    value: value
-                });
-            }
-
-            saveData();
-            render();
-            closeModal('gradeModal');
-            showAlert(gradeId ? 'Qiymət yeniləndi!' : 'Qiymət əlavə edildi!', 'success');
-        }
-
-        function deleteGrade(gradeId) {
-            if (confirm('Bu qiyməti silmək istədiyinizə əminsiniz?')) {
-                data.grades = data.grades.filter(g => g.id !== gradeId);
-                saveData();
-                render();
-                showAlert('Qiymət silindi!', 'success');
-            }
-        }
-
-        function renderAbsences() {
-            document.getElementById('currentMonthTitle').textContent = 
-                `${monthNames[data.currentMonth]} ${data.currentYear}`;
-
-            const tbody = document.getElementById('absenceTableBody');
-            tbody.innerHTML = '';
-
-            const firstDay = new Date(data.currentYear, data.currentMonth, 1);
-            const lastDay = new Date(data.currentYear, data.currentMonth + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startDay = firstDay.getDay();
-
-            let currentDay = 1;
-            let weekCount = Math.ceil((daysInMonth + startDay) / 7);
-
-            for (let week = 0; week < weekCount; week++) {
-                const row = document.createElement('tr');
-                
-                for (let day = 0; day < 7; day++) {
-                    const cell = document.createElement('td');
-                    cell.className = 'day-cell';
-
-                    if ((week === 0 && day < startDay) || currentDay > daysInMonth) {
-                        cell.innerHTML = '-';
-                    } else {
-                        const dateStr = `${data.currentYear}-${String(data.currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-                        const absenceKey = `${data.selectedStudent}-${dateStr}`;
-                        const isAbsent = data.absences[absenceKey] || false;
-
-                        cell.innerHTML = currentDay;
-                        cell.onclick = () => toggleAbsence(dateStr);
-                        
-                        if (isAbsent) {
-                            cell.classList.add('absent');
-                        }
-
-                        currentDay++;
-                    }
-
-                    row.appendChild(cell);
-                }
-
-                tbody.appendChild(row);
-            }
-        }
-
-        function toggleAbsence(dateStr) {
-            const absenceKey = `${data.selectedStudent}-${dateStr}`;
-            data.absences[absenceKey] = !data.absences[absenceKey];
+            const modal = document.getElementById('gradeModal');
+            document.getElementById('gradeId').value = gradeId;
             
-            if (!data.absences[absenceKey]) {
-                delete data.absences[absenceKey];
-            }
-
-            saveData();
-            renderAbsences();
+            // AJAX ilə qiymət məlumatlarını yüklə
+            // fetch(`get_grade.php?id=${gradeId}`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         document.getElementById('gradeDate').value = data.date;
+            //         document.getElementById('gradeCategory').value = data.category_id;
+            //         document.getElementById('gradeValue').value = data.value;
+            //     });
+            
+            modal.classList.add('active');
         }
 
-        function previousMonth() {
-            data.currentMonth--;
-            if (data.currentMonth < 0) {
-                data.currentMonth = 11;
-                data.currentYear--;
-            }
-            saveData();
-            renderAbsences();
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
         }
 
-        function nextMonth() {
-            data.currentMonth++;
-            if (data.currentMonth > 11) {
-                data.currentMonth = 0;
-                data.currentYear++;
-            }
-            saveData();
-            renderAbsences();
-        }
-
-        function renderWeights() {
-            const display = document.getElementById('weightsDisplay');
-            display.innerHTML = `
-                <div class="weight-item">
-                    <div class="weight-label">Quiz</div>
-                    <div class="weight-value">${data.weights.quiz}%</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-label">Midterm</div>
-                    <div class="weight-value">${data.weights.midterm}%</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-label">Təqdimat</div>
-                    <div class="weight-value">${data.weights.presentation}%</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-label">İmtahan</div>
-                    <div class="weight-value">${data.weights.exam}%</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-label">Final</div>
-                    <div class="weight-value">${data.weights.final}%</div>
-                </div>
-            `;
-        }
-
-        function openSettingsModal() {
-            document.getElementById('weightQuiz').value = data.weights.quiz;
-            document.getElementById('weightMidterm').value = data.weights.midterm;
-            document.getElementById('weightPresentation').value = data.weights.presentation;
-            document.getElementById('weightExam').value = data.weights.exam;
-            document.getElementById('weightFinal').value = data.weights.final;
-            document.getElementById('settingsModal').classList.add('active');
-        }
-
-        function saveSettings(e) {
-            e.preventDefault();
-            const quiz = parseInt(document.getElementById('weightQuiz').value);
-            const midterm = parseInt(document.getElementById('weightMidterm').value);
-            const presentation = parseInt(document.getElementById('weightPresentation').value);
-            const exam = parseInt(document.getElementById('weightExam').value);
-            const final = parseInt(document.getElementById('weightFinal').value);
-
-            const total = quiz + midterm + presentation + exam + final;
-            if (total !== 100) {
-                showAlert(`Ağırlıqların cəmi 100% olmalıdır! (Hazırda: ${total}%)`, 'error');
-                return;
-            }
-
-            data.weights = { quiz, midterm, presentation, exam, final };
-            saveData();
-            render();
-            closeModal('settingsModal');
-            showAlert('Parametrlər yeniləndi!', 'success');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert alert-${type} active`;
-            setTimeout(() => alert.classList.remove('active'), 3000);
-        }
-
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
+        // Modal xaricində klikləndikdə bağla
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
             }
         };
 
-        init();
+        // Qayıb əlavə et / sil
+        function toggleAbsence(studentId, dateStr, element) {
+            // Element-in class-ını dərhal dəyiş (vizual feedback)
+            if (element.classList.contains('absent')) {
+                element.classList.remove('absent');
+            } else {
+                element.classList.add('absent');
+            }
+
+            // AJAX ilə backend-ə göndər (real proyekt üçün)
+            /*
+            fetch('toggle_absence.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `student_id=${studentId}&date=${dateStr}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    // Əgər xəta varsa, geriyə qaytar
+                    if (element.classList.contains('absent')) {
+                        element.classList.remove('absent');
+                    } else {
+                        element.classList.add('absent');
+                    }
+                    alert('Xəta baş verdi!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Xəta olduqda geriyə qaytar
+                if (element.classList.contains('absent')) {
+                    element.classList.remove('absent');
+                } else {
+                    element.classList.add('absent');
+                }
+            });
+            */
+        }
     </script>
 </body>
 </html>
